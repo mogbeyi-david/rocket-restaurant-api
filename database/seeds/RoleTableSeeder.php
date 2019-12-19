@@ -18,7 +18,9 @@ class RoleTableSeeder extends Seeder
         // Loop through the roles array and insert the new role into the role table
         foreach ($roles as $role) {
             DB::table('roles')->insert([
-                'role' => $role
+                'role' => $role,
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
         }
 
