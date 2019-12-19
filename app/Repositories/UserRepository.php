@@ -8,8 +8,15 @@
 
 namespace App\Repositories;
 
+use App\Repositories\Contracts\UserInterface;
+use App\User;
 
-class UserRepository
+
+class UserRepository implements UserInterface
 {
 
+    public function findByEmail($email)
+    {
+        return User::where('email', $email)->first();
+    }
 }

@@ -4,14 +4,21 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use JWTAuth;
 use App\User;
+use App\Repositories\Contracts\UserInterface;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\RegistrationRequest;
 
 class AuthController extends Controller
 {
+    protected $userInterface;
+
+    public function __construct(UserInterface $userInterface)
+    {
+        $this->userInterface = $userInterface;
+    }
 
     /**
      * @param RegistrationRequest $request
@@ -31,6 +38,28 @@ class AuthController extends Controller
             'success' => true,
             'data' => $user
         ], 200);
+    }
+
+    public function login(Request $request)
+    {
+        $input = $request->only('email', 'password');
+        $token = null;
+
+        if (!$token = JWTAuth::attempt($input)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid Email or Password',
+            ], 401);
+        }
+
+        // Get the user details
+        $user = $this->userInterface->findByEmail($input['email']);
+
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+            'user' => $user
+        ]);
     }
 
 }
