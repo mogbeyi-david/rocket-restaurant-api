@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
 use App\User;
@@ -95,14 +96,62 @@ class AuthControllerTest extends TestCase
             'password' => 'Kernel_23'
         ]);
 
-//        var_dump($response->content());
-
         $response->assertStatus(201)->assertJson([
             "success" => true,
             "data" => [
                 "firstname" => "testFirstname",
                 "lastname" => "testLastname"
             ]
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function cannot_login_with_invalid_credentials()
+    {
+
+        $response = $this->postJson('/api/login', [
+            'email' => 'mogbeyidavid@gmail.com',
+            'password' => 'Kernel_23'
+        ]);
+
+        $response->assertStatus(401)->assertJson([
+            "success" => false,
+            "message" => 'Invalid Email or Password'
+        ]);
+    }
+
+    /**
+     * @test
+     */
+    public function can_login_successfully()
+    {
+        // Create a valid role
+        DB::table('roles')->insert([
+            'role' => 'CUSTOMER',
+            'id' => 1,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        //Create a valid user
+        User::create([
+            'firstname' => 'testFirstname',
+            'lastname' => 'testLastname',
+            'email' => 'test@email.com',
+            'phone_number' => "2349087767454",
+            'password' => Hash::make('shodak_234')
+        ]);
+
+        $response = $this->postJson('/api/login', [
+            'email' => 'test@email.com',
+            'password' => 'shodak_234'
+        ]);
+
+        $response->assertStatus(200)->assertJson([
+            'success' => true,
+            'message' => 'Login Successful',
         ]);
     }
 }
