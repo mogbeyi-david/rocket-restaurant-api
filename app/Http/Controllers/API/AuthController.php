@@ -26,6 +26,7 @@ class AuthController extends Controller
      */
     public function register(RegistrationRequest $request)
     {
+
         $user = new User();
         $user->firstname = $request->firstname;
         $user->lastname = $request->lastname;
@@ -33,11 +34,10 @@ class AuthController extends Controller
         $user->phone_number = $request->phoneNumber;
         $user->password = Hash::make($request->password);
         $user->save();
-
         return response()->json([
             'success' => true,
             'data' => $user
-        ], 200);
+        ], 201);
     }
 
     public function login(Request $request)
