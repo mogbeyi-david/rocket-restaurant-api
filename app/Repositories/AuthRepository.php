@@ -43,4 +43,9 @@ class AuthRepository implements AuthInterface
             'email' => $input['email']
         ];
     }
+
+    public function logout(Request $request)
+    {
+        return JWTAuth::invalidate($request->token);
+    }
 }

@@ -152,7 +152,7 @@ class AuthControllerTest extends TestCase
         $response->assertStatus(200)->assertJson([
             'success' => true,
             'message' => 'Login Successful',
-            'user' => [
+            'data' => [
                 'firstname' => 'testFirstname',
                 'lastname' => 'testLastname'
             ]
