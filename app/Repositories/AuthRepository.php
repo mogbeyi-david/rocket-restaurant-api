@@ -44,8 +44,12 @@ class AuthRepository implements AuthInterface
         ];
     }
 
+    /**
+     * @param Request $request
+     * @return mixed
+     */
     public function logout(Request $request)
     {
-        return JWTAuth::invalidate($request->token);
+        return JWTAuth::invalidate(JWTAuth::getToken());
     }
 }

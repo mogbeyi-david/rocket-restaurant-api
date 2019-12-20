@@ -16,6 +16,11 @@ class AuthController extends Controller
     protected $userInterface;
     protected $authInterface;
 
+    /**
+     * AuthController constructor.
+     * @param UserInterface $userInterface
+     * @param AuthInterface $authInterface
+     */
     public function __construct(UserInterface $userInterface, AuthInterface $authInterface)
     {
         $this->userInterface = $userInterface;
@@ -37,6 +42,11 @@ class AuthController extends Controller
 
     }
 
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login(Request $request)
     {
         try {
@@ -45,7 +55,7 @@ class AuthController extends Controller
                 return $this->sendError([], 'Invalid Email or Password', 401);
             }
             $user = $this->userInterface->findByEmail($loginCredentials['email']);
-            return $this->sendSuccess($user, 'Login Successful');
+            return $this->sendSuccess(["user" => $user, 'token' => $loginCredentials['token']], 'Login Successful');
         } catch (Exception $exception) {
             return $this->sendFatalError();
         }
@@ -58,10 +68,6 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $this->validate($request, [
-            'token' => 'required'
-        ]);
-
         try {
             $this->authInterface->logout($request);
             return $this->sendSuccess([], 'User logged out successfully');
