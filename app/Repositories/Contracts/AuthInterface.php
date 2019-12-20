@@ -8,12 +8,16 @@
 
 namespace App\Repositories\Contracts;
 
+use Illuminate\Http\Request;
+
 
 interface AuthInterface
 {
 
-    public function register();
+    public function register(Request $request);
 
-    public function login();
+    public function login(Request $request);
+
+    public function logout(Request $request);
 
 }

@@ -3,21 +3,28 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\Request;
 use JWTAuth;
-use App\User;
 use App\Repositories\Contracts\UserInterface;
+use App\Repositories\Contracts\AuthInterface;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\RegistrationRequest;
 
 class AuthController extends Controller
 {
     protected $userInterface;
+    protected $authInterface;
 
-    public function __construct(UserInterface $userInterface)
+    /**
+     * AuthController constructor.
+     * @param UserInterface $userInterface
+     * @param AuthInterface $authInterface
+     */
+    public function __construct(UserInterface $userInterface, AuthInterface $authInterface)
     {
         $this->userInterface = $userInterface;
+        $this->authInterface = $authInterface;
     }
 
     /**
@@ -26,40 +33,48 @@ class AuthController extends Controller
      */
     public function register(RegistrationRequest $request)
     {
-        $user = new User();
-        $user->firstname = $request->firstname;
-        $user->lastname = $request->lastname;
-        $user->email = $request->email;
-        $user->phone_number = $request->phoneNumber;
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        return response()->json([
-            'success' => true,
-            'data' => $user
-        ], 200);
-    }
-
-    public function login(Request $request)
-    {
-        $input = $request->only('email', 'password');
-        $token = null;
-
-        if (!$token = JWTAuth::attempt($input)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid Email or Password',
-            ], 401);
+        try {
+            $user = $this->authInterface->register($request);
+            return $this->sendSuccess($user, "User created successfully", 201);
+        } catch (Exception $exception) {
+            return $this->sendFatalError();
         }
 
-        // Get the user details
-        $user = $this->userInterface->findByEmail($input['email']);
-
-        return response()->json([
-            'success' => true,
-            'token' => $token,
-            'user' => $user
-        ]);
     }
+
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function login(Request $request)
+    {
+        try {
+            $loginCredentials = $this->authInterface->login($request);
+            if (!$loginCredentials['token']) {
+                return $this->sendError([], 'Invalid Email or Password', 401);
+            }
+            $user = $this->userInterface->findByEmail($loginCredentials['email']);
+            return $this->sendSuccess(["user" => $user, 'token' => $loginCredentials['token']], 'Login Successful');
+        } catch (Exception $exception) {
+            return $this->sendFatalError();
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function logout(Request $request)
+    {
+        try {
+            $this->authInterface->logout($request);
+            return $this->sendSuccess([], 'User logged out successfully');
+        } catch (Exception $exception) {
+            return $this->sendFatalError();
+        }
+    }
+
 
 }
