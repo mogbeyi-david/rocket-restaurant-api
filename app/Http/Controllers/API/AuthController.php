@@ -46,22 +46,19 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $input = $request->only('email', 'password');
-        $token = null;
-
-        if (!$token = JWTAuth::attempt($input)) {
+        //Log the user in
+        $loginCredentials = $this->authInterface->login($request);
+        if (!$loginCredentials['token']) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid Email or Password',
+                'message' => 'Invalid Email or Password'
             ], 401);
         }
-
         // Get the user details
-        $user = $this->userInterface->findByEmail($input['email']);
-
+        $user = $this->userInterface->findByEmail($loginCredentials['email']);
         return response()->json([
             'success' => true,
-            'token' => $token,
+            'token' => $loginCredentials['token'],
             'user' => $user,
             'message' => 'Login Successful'
         ]);

@@ -11,6 +11,8 @@ namespace App\Repositories;
 use App\User;
 use Illuminate\Support\Facades\Hash;
 use App\Repositories\Contracts\AuthInterface;
+use Illuminate\Http\Request;
+use JWTAuth;
 
 
 class AuthRepository implements AuthInterface
@@ -28,8 +30,17 @@ class AuthRepository implements AuthInterface
         return $user;
     }
 
-    public function login()
+    public function login(Request $request)
     {
-        // TODO: Implement login() method.
+        $input = $request->only('email', 'password');
+        $token = null;
+
+        if (!$token = JWTAuth::attempt($input)) {
+            return false;
+        }
+        return [
+            'token' => $token,
+            'email' => $input['email']
+        ];
     }
 }
