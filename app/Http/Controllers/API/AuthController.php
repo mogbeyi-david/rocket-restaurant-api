@@ -3,21 +3,23 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use Exception;
 use Illuminate\Http\Request;
 use JWTAuth;
-use App\User;
 use App\Repositories\Contracts\UserInterface;
+use App\Repositories\Contracts\AuthInterface;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\RegistrationRequest;
 
 class AuthController extends Controller
 {
     protected $userInterface;
+    protected $authInterface;
 
-    public function __construct(UserInterface $userInterface)
+    public function __construct(UserInterface $userInterface, AuthInterface $authInterface)
     {
         $this->userInterface = $userInterface;
+        $this->authInterface = $authInterface;
     }
 
     /**
@@ -26,18 +28,20 @@ class AuthController extends Controller
      */
     public function register(RegistrationRequest $request)
     {
+        try {
+            $user = $this->authInterface->register($request);
+            return response()->json([
+                'success' => true,
+                'data' => $user
+            ], 201);
+        } catch (Exception $exception) {
+            return response()->json([
+                'success' => false,
+                'data' => $exception->getMessage(),
+                'message' => "Something went wrong, we are already looking into it"
+            ], 500);
+        }
 
-        $user = new User();
-        $user->firstname = $request->firstname;
-        $user->lastname = $request->lastname;
-        $user->email = $request->email;
-        $user->phone_number = $request->phoneNumber;
-        $user->password = Hash::make($request->password);
-        $user->save();
-        return response()->json([
-            'success' => true,
-            'data' => $user
-        ], 201);
     }
 
     public function login(Request $request)

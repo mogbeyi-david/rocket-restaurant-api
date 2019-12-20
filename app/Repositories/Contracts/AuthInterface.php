@@ -12,7 +12,7 @@ namespace App\Repositories\Contracts;
 interface AuthInterface
 {
 
-    public function register();
+    public function register($request);
 
     public function login();
 
